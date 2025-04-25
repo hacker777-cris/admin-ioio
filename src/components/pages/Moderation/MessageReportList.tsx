@@ -1,26 +1,41 @@
-import React, { useState, useEffect } from 'react';
-import { moderationService } from '../../../services/moderation.service';
-import { useNotification } from '../../../contexts/NotificationContext';
-import { MessageReport } from '../../../types';
-import { Table, TableHead, TableBody, TableRow, TableCell, TablePagination } from '../../ui/Table';
-import Button from '../../ui/Button';
-import Badge from '../../ui/Badge';
-import Modal from '../../ui/Modal';
-import { formatDate, getStatusColor } from '../../../utils/formatters';
-import { CheckCircle, XCircle, AlertTriangle, Eye, MessageSquare } from 'lucide-react';
+import React, { useState, useEffect } from "react";
+import { moderationService } from "../../../services/moderation.service";
+import { useNotification } from "../../../contexts/NotificationContext";
+import { MessageReport } from "../../../types";
+import {
+  Table,
+  TableHead,
+  TableBody,
+  TableRow,
+  TableCell,
+  TablePagination,
+} from "../../ui/Table";
+import Button from "../../ui/Button";
+import Badge from "../../ui/Badge";
+import Modal from "../../ui/Modal";
+import { formatDate, getStatusColor } from "../../../utils/formatters";
+import {
+  CheckCircle,
+  XCircle,
+  AlertTriangle,
+  Eye,
+  MessageSquare,
+} from "lucide-react";
 
 const MessageReportList: React.FC = () => {
   const [reports, setReports] = useState<MessageReport[]>([]);
   const [totalReports, setTotalReports] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);
-  const [selectedReport, setSelectedReport] = useState<MessageReport | null>(null);
+  const [selectedReport, setSelectedReport] = useState<MessageReport | null>(
+    null,
+  );
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [actionInProgress, setActionInProgress] = useState(false);
-  const [actionNotes, setActionNotes] = useState('');
-  
+  const [actionNotes, setActionNotes] = useState("");
+
   const { showSuccess, showError } = useNotification();
-  
+
   const fetchReports = async () => {
     setLoading(true);
     try {
@@ -28,121 +43,129 @@ const MessageReportList: React.FC = () => {
       setReports(response.results);
       setTotalReports(response.count);
     } catch (error) {
-      showError('Failed to load message reports');
-      console.error('Error loading message reports:', error);
+      showError("Failed to load message reports");
+      console.error("Error loading message reports:", error);
     } finally {
       setLoading(false);
     }
   };
-  
+
   useEffect(() => {
     fetchReports();
   }, [currentPage]);
-  
+
   const handleViewReport = (report: MessageReport) => {
     setSelectedReport(report);
     setIsModalOpen(true);
   };
-  
+
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setSelectedReport(null);
-    setActionNotes('');
+    setActionNotes("");
   };
-  
+
   const handleMarkReviewed = async () => {
     if (!selectedReport) return;
-    
+
     setActionInProgress(true);
     try {
       await moderationService.markMessageReportReviewed(selectedReport.id);
-      showSuccess('Report marked as reviewed');
-      
+      showSuccess("Report marked as reviewed");
+
       // Update the local state
-      setReports(reports.map(report => 
-        report.id === selectedReport.id 
-          ? { ...report, status: 'reviewed' } 
-          : report
-      ));
-      
+      setReports(
+        reports.map((report) =>
+          report.id === selectedReport.id
+            ? { ...report, status: "reviewed" }
+            : report,
+        ),
+      );
+
       handleCloseModal();
     } catch (error) {
-      showError('Failed to mark report as reviewed');
-      console.error('Error:', error);
+      showError("Failed to mark report as reviewed");
+      console.error("Error:", error);
     } finally {
       setActionInProgress(false);
     }
   };
-  
+
   const handleTakeAction = async (action: string) => {
     if (!selectedReport) return;
-    
+
     setActionInProgress(true);
     try {
       await moderationService.takeActionOnMessageReport(
-        selectedReport.id, 
-        action, 
-        actionNotes
+        selectedReport.id,
+        action,
+        actionNotes,
       );
-      
+
       showSuccess(`Action taken: ${action}`);
-      
+
       // Update the local state
-      setReports(reports.map(report => 
-        report.id === selectedReport.id 
-          ? { ...report, status: 'action_taken' } 
-          : report
-      ));
-      
+      setReports(
+        reports.map((report) =>
+          report.id === selectedReport.id
+            ? { ...report, status: "action_taken" }
+            : report,
+        ),
+      );
+
       handleCloseModal();
     } catch (error) {
-      showError('Failed to take action');
-      console.error('Error:', error);
+      showError("Failed to take action");
+      console.error("Error:", error);
     } finally {
       setActionInProgress(false);
     }
   };
-  
+
   const getStatusBadge = (status: string) => {
-    switch(status) {
-      case 'pending':
+    switch (status) {
+      case "pending":
         return <Badge variant="warning">Pending</Badge>;
-      case 'reviewed':
+      case "reviewed":
         return <Badge variant="info">Reviewed</Badge>;
-      case 'action_taken':
+      case "action_taken":
         return <Badge variant="success">Action Taken</Badge>;
       default:
         return <Badge variant="default">{status}</Badge>;
     }
   };
-  
+
   // Render skeletons while loading
   const renderSkeletons = () => {
-    return Array(5).fill(0).map((_, index) => (
-      <TableRow key={index}>
-        <TableCell>
-          <div className="h-4 bg-gray-200 rounded w-24 animate-pulse"></div>
-        </TableCell>
-        <TableCell>
-          <div className="h-4 bg-gray-200 rounded w-32 animate-pulse"></div>
-        </TableCell>
-        <TableCell>
-          <div className="h-4 bg-gray-200 rounded w-40 animate-pulse"></div>
-        </TableCell>
-        <TableCell>
-          <div className="h-4 bg-gray-200 rounded w-24 animate-pulse"></div>
-        </TableCell>
-        <TableCell>
-          <div className="h-4 bg-gray-200 rounded w-24 animate-pulse"></div>
-        </TableCell>
-      </TableRow>
-    ));
+    return Array(5)
+      .fill(0)
+      .map((_, index) => (
+        <TableRow key={index}>
+          <TableCell>
+            <div className="h-4 bg-gray-200 rounded w-24 animate-pulse"></div>
+          </TableCell>
+          <TableCell>
+            <div className="h-4 bg-gray-200 rounded w-32 animate-pulse"></div>
+          </TableCell>
+          <TableCell>
+            <div className="h-4 bg-gray-200 rounded w-40 animate-pulse"></div>
+          </TableCell>
+          <TableCell>
+            <div className="h-4 bg-gray-200 rounded w-24 animate-pulse"></div>
+          </TableCell>
+          <TableCell>
+            <div className="h-4 bg-gray-200 rounded w-24 animate-pulse"></div>
+          </TableCell>
+        </TableRow>
+      ));
   };
-  
+
   return (
     <div>
-      <h2 className="text-lg font-medium text-gray-800 mb-4">Message Reports</h2>
-      
+      <h2 className="text-lg font-medium text-gray-800 mb-4">
+        Message Reports
+      </h2>
+
       <Table>
         <TableHead>
           <TableRow>
@@ -166,9 +189,13 @@ const MessageReportList: React.FC = () => {
           ) : (
             reports.map((report) => (
               <TableRow key={report.id}>
-                <TableCell>{report.reporter.username}</TableCell>
-                <TableCell>{report.reported_user.username}</TableCell>
-                <TableCell className="max-w-xs truncate">{report.reason}</TableCell>
+                <TableCell>{report.reporter?.username || "Unknown"}</TableCell>
+                <TableCell>
+                  {report.reported_user?.username || "Unknown"}
+                </TableCell>
+                <TableCell className="max-w-xs truncate">
+                  {report.reason}
+                </TableCell>
                 <TableCell>{getStatusBadge(report.status)}</TableCell>
                 <TableCell>{formatDate(report.created_at)}</TableCell>
                 <TableCell>
@@ -186,14 +213,14 @@ const MessageReportList: React.FC = () => {
           )}
         </TableBody>
       </Table>
-      
+
       <TablePagination
         totalItems={totalReports}
         itemsPerPage={10}
         currentPage={currentPage}
         onPageChange={setCurrentPage}
       />
-      
+
       {selectedReport && (
         <Modal
           isOpen={isModalOpen}
@@ -202,14 +229,11 @@ const MessageReportList: React.FC = () => {
           size="lg"
           footer={
             <div className="flex justify-between w-full">
-              <Button
-                variant="outline"
-                onClick={handleCloseModal}
-              >
+              <Button variant="outline" onClick={handleCloseModal}>
                 Close
               </Button>
               <div className="space-x-2">
-                {selectedReport.status === 'pending' && (
+                {selectedReport.status === "pending" && (
                   <>
                     <Button
                       variant="secondary"
@@ -222,7 +246,7 @@ const MessageReportList: React.FC = () => {
                     <Button
                       variant="danger"
                       icon={<XCircle size={16} />}
-                      onClick={() => handleTakeAction('remove_message')}
+                      onClick={() => handleTakeAction("remove_message")}
                       isLoading={actionInProgress}
                     >
                       Remove Message
@@ -230,7 +254,7 @@ const MessageReportList: React.FC = () => {
                     <Button
                       variant="primary"
                       icon={<AlertTriangle size={16} />}
-                      onClick={() => handleTakeAction('warn_user')}
+                      onClick={() => handleTakeAction("warn_user")}
                       isLoading={actionInProgress}
                     >
                       Warn User
@@ -245,41 +269,65 @@ const MessageReportList: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <h3 className="text-sm font-medium text-gray-500">Reporter</h3>
-                <p className="mt-1">{selectedReport.reporter.username}</p>
-                <p className="text-sm text-gray-500">{selectedReport.reporter.email}</p>
+                <p className="mt-1">
+                  {selectedReport.reporter?.username || "Unknown"}
+                </p>
+                <p className="text-sm text-gray-500">
+                  {selectedReport.reporter?.email || "N/A"}
+                </p>
               </div>
               <div>
-                <h3 className="text-sm font-medium text-gray-500">Reported User</h3>
-                <p className="mt-1">{selectedReport.reported_user.username}</p>
-                <p className="text-sm text-gray-500">{selectedReport.reported_user.email}</p>
+                <h3 className="text-sm font-medium text-gray-500">
+                  Reported User
+                </h3>
+                <p className="mt-1">
+                  {selectedReport.reported_user?.username || "Unknown"}
+                </p>
+                <p className="text-sm text-gray-500">
+                  {selectedReport.reported_user?.email || "N/A"}
+                </p>
               </div>
             </div>
-            
+
             <div>
-              <h3 className="text-sm font-medium text-gray-500">Report Reason</h3>
+              <h3 className="text-sm font-medium text-gray-500">
+                Report Reason
+              </h3>
               <p className="mt-1">{selectedReport.reason}</p>
             </div>
-            
+
             <div>
-              <h3 className="text-sm font-medium text-gray-500">Message Content</h3>
+              <h3 className="text-sm font-medium text-gray-500">
+                Message Content
+              </h3>
               <div className="mt-1 p-4 bg-gray-50 border border-gray-200 rounded-md">
                 <div className="flex items-start mb-2">
                   <div className="flex-shrink-0 mr-3">
                     <div className="w-8 h-8 rounded-full bg-[#2C3E50] flex items-center justify-center text-white text-sm font-medium">
-                      {selectedReport.reported_user.username.charAt(0).toUpperCase()}
+                      {selectedReport.reported_user?.username
+                        ? selectedReport.reported_user.username
+                            .charAt(0)
+                            .toUpperCase()
+                        : "?"}
                     </div>
                   </div>
                   <div className="bg-white p-3 rounded-lg shadow-sm border border-gray-100 flex-grow">
-                    <p className="text-gray-800">{selectedReport.message_content}</p>
+                    <p className="text-gray-800">
+                      {selectedReport.message_content}
+                    </p>
                   </div>
                 </div>
-                <p className="text-xs text-gray-500 text-right">Message ID: {selectedReport.message_id}</p>
+                <p className="text-xs text-gray-500 text-right">
+                  Message ID: {selectedReport.message_id}
+                </p>
               </div>
             </div>
-            
-            {selectedReport.status === 'pending' && (
+
+            {selectedReport.status === "pending" && (
               <div>
-                <h3 className="text-sm font-medium text-gray-500">Action Notes (Optional)</h3>
+                <h3 className="text-sm font-medium text-gray-500">
+                  Action Notes (Optional)
+                </h3>
                 <textarea
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#2C3E50] focus:ring focus:ring-[#2C3E50] focus:ring-opacity-50"
                   rows={3}
@@ -297,3 +345,4 @@ const MessageReportList: React.FC = () => {
 };
 
 export default MessageReportList;
+

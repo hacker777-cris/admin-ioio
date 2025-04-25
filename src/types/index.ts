@@ -22,58 +22,52 @@ export interface User {
 }
 
 // Dashboard types
+// Types corresponding to frontend component expectations
 export interface UserStats {
   total: number;
-  active: number;
-  inactive: number;
-  staff: number;
-  new_today: number;
-  new_this_week: number;
-  new_this_month: number;
+  active?: number;
+  sellers?: number;
+  new_this_month?: number;
 }
 
 export interface PropertyStats {
   total: number;
-  active: number;
-  pending: number;
-  featured: number;
-  new_today: number;
-  new_this_week: number;
-  new_this_month: number;
+  active?: number;
+  pending?: number;
+  featured?: number;
+  for_sale?: number;
+  rental?: number;
+  per_night?: number;
+  sold?: number;
+  new_this_week?: number;
 }
 
 export interface BookingStats {
   total: number;
+  pending?: number;
+  confirmed?: number;
+  completed?: number;
+  cancelled?: number;
+  new_this_month?: number;
+}
+
+export interface ModerationSubStats {
+  total: number;
   pending: number;
-  confirmed: number;
-  cancelled: number;
-  completed: number;
-  new_today: number;
-  new_this_week: number;
-  new_this_month: number;
+  resolved: number;
+}
+
+export interface ReviewStats {
+  total: number;
+  flagged: number;
+  removed: number;
 }
 
 export interface ContentModerationStats {
-  message_reports: {
-    total: number;
-    pending: number;
-    resolved: number;
-  };
-  flagged_messages: {
-    total: number;
-    pending: number;
-    resolved: number;
-  };
-  owner_reports: {
-    total: number;
-    pending: number;
-    resolved: number;
-  };
-  reviews: {
-    total: number;
-    flagged: number;
-    removed: number;
-  };
+  message_reports: ModerationSubStats;
+  flagged_messages: ModerationSubStats;
+  owner_reports: ModerationSubStats;
+  reviews: ReviewStats;
 }
 
 // User Management types
@@ -91,7 +85,7 @@ export interface MessageReport {
   message_id: number;
   message_content: string;
   reason: string;
-  status: 'pending' | 'reviewed' | 'action_taken';
+  status: "pending" | "reviewed" | "action_taken";
   created_at: string;
   updated_at: string;
 }
@@ -102,7 +96,7 @@ export interface FlaggedMessage {
   message_id: number;
   message_content: string;
   flags: number;
-  status: 'pending' | 'reviewed' | 'action_taken';
+  status: "pending" | "reviewed" | "action_taken";
   created_at: string;
   updated_at: string;
 }
@@ -113,7 +107,7 @@ export interface OwnerReport {
   owner: User;
   reason: string;
   description: string;
-  status: 'pending' | 'investigating' | 'resolved' | 'rejected';
+  status: "pending" | "investigating" | "resolved" | "rejected";
   created_at: string;
   updated_at: string;
 }
@@ -143,3 +137,4 @@ export interface PaginatedResponse<T> {
   previous: string | null;
   results: T[];
 }
+
