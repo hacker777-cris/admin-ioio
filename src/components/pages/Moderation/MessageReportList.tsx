@@ -77,7 +77,7 @@ const MessageReportList: React.FC = () => {
       setReports(
         reports.map((report) =>
           report.id === selectedReport.id
-            ? { ...report, status: "reviewed" }
+            ? { ...report, reviewed: true }
             : report,
         ),
       );
@@ -108,7 +108,7 @@ const MessageReportList: React.FC = () => {
       setReports(
         reports.map((report) =>
           report.id === selectedReport.id
-            ? { ...report, status: "action_taken" }
+            ? { ...report, reviewed: true }
             : report,
         ),
       );
@@ -122,17 +122,12 @@ const MessageReportList: React.FC = () => {
     }
   };
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "pending":
-        return <Badge variant="warning">Pending</Badge>;
-      case "reviewed":
-        return <Badge variant="info">Reviewed</Badge>;
-      case "action_taken":
-        return <Badge variant="success">Action Taken</Badge>;
-      default:
-        return <Badge variant="default">{status}</Badge>;
-    }
+  const getStatusBadge = (reviewed: boolean) => {
+    return reviewed ? (
+      <Badge variant="success">Reviewed</Badge>
+    ) : (
+      <Badge variant="warning">Pending</Badge>
+    );
   };
 
   // Render skeletons while loading
@@ -170,7 +165,7 @@ const MessageReportList: React.FC = () => {
         <TableHead>
           <TableRow>
             <TableCell header>Reporter</TableCell>
-            <TableCell header>Reported User</TableCell>
+            <TableCell header>Message Sender</TableCell>
             <TableCell header>Reason</TableCell>
             <TableCell header>Status</TableCell>
             <TableCell header>Date</TableCell>
@@ -189,14 +184,14 @@ const MessageReportList: React.FC = () => {
           ) : (
             reports.map((report) => (
               <TableRow key={report.id}>
-                <TableCell>{report.reporter?.username || "Unknown"}</TableCell>
                 <TableCell>
-                  {report.reported_user?.username || "Unknown"}
+                  {report.reported_by_username || "Unknown"}
                 </TableCell>
+                <TableCell>{report.message_sender || "Unknown"}</TableCell>
                 <TableCell className="max-w-xs truncate">
-                  {report.reason}
+                  {report.reason_display || report.reason}
                 </TableCell>
-                <TableCell>{getStatusBadge(report.status)}</TableCell>
+                <TableCell>{getStatusBadge(report.reviewed)}</TableCell>
                 <TableCell>{formatDate(report.created_at)}</TableCell>
                 <TableCell>
                   <Button
@@ -233,7 +228,7 @@ const MessageReportList: React.FC = () => {
                 Close
               </Button>
               <div className="space-x-2">
-                {selectedReport.status === "pending" && (
+                {!selectedReport.reviewed && (
                   <>
                     <Button
                       variant="secondary"
@@ -270,21 +265,23 @@ const MessageReportList: React.FC = () => {
               <div>
                 <h3 className="text-sm font-medium text-gray-500">Reporter</h3>
                 <p className="mt-1">
-                  {selectedReport.reporter?.username || "Unknown"}
+                  {selectedReport.reported_by_username || "Unknown"}
                 </p>
                 <p className="text-sm text-gray-500">
-                  {selectedReport.reporter?.email || "N/A"}
+                  ID: {selectedReport.reported_by}
                 </p>
               </div>
               <div>
                 <h3 className="text-sm font-medium text-gray-500">
-                  Reported User
+                  Message Exchange
                 </h3>
                 <p className="mt-1">
-                  {selectedReport.reported_user?.username || "Unknown"}
+                  <span className="font-medium">Sender:</span>{" "}
+                  {selectedReport.message_sender || "Unknown"}
                 </p>
-                <p className="text-sm text-gray-500">
-                  {selectedReport.reported_user?.email || "N/A"}
+                <p className="text-sm text-gray-600">
+                  <span className="font-medium">Receiver:</span>{" "}
+                  {selectedReport.message_receiver || "Unknown"}
                 </p>
               </div>
             </div>
@@ -293,7 +290,14 @@ const MessageReportList: React.FC = () => {
               <h3 className="text-sm font-medium text-gray-500">
                 Report Reason
               </h3>
-              <p className="mt-1">{selectedReport.reason}</p>
+              <p className="mt-1">
+                {selectedReport.reason_display || selectedReport.reason}
+              </p>
+              {selectedReport.details && (
+                <p className="mt-1 text-sm text-gray-600">
+                  {selectedReport.details}
+                </p>
+              )}
             </div>
 
             <div>
@@ -304,10 +308,8 @@ const MessageReportList: React.FC = () => {
                 <div className="flex items-start mb-2">
                   <div className="flex-shrink-0 mr-3">
                     <div className="w-8 h-8 rounded-full bg-[#2C3E50] flex items-center justify-center text-white text-sm font-medium">
-                      {selectedReport.reported_user?.username
-                        ? selectedReport.reported_user.username
-                            .charAt(0)
-                            .toUpperCase()
+                      {selectedReport.message_sender
+                        ? selectedReport.message_sender.charAt(0).toUpperCase()
                         : "?"}
                     </div>
                   </div>
@@ -318,12 +320,12 @@ const MessageReportList: React.FC = () => {
                   </div>
                 </div>
                 <p className="text-xs text-gray-500 text-right">
-                  Message ID: {selectedReport.message_id}
+                  Message ID: {selectedReport.message}
                 </p>
               </div>
             </div>
 
-            {selectedReport.status === "pending" && (
+            {!selectedReport.reviewed && (
               <div>
                 <h3 className="text-sm font-medium text-gray-500">
                   Action Notes (Optional)
